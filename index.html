@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Crypto Price Tracker</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f7f7f7;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #crypto-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+    }
+    .crypto-card {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .crypto-card img {
+      width: 40px;
+      height: 40px;
+    }
+    .price {
+      font-weight: bold;
+      margin: 5px 0;
+    }
+    .change {
+      font-size: 0.9em;
+    }
+    .green {
+      color: green;
+    }
+    .red {
+      color: red;
+    }
+    #refresh-btn {
+      display: block;
+      margin: 0 auto 20px;
+      padding: 10px 20px;
+      background: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #error-message {
+      text-align: center;
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📈 Crypto Price Tracker</h1>
+  <button id="refresh-btn">Refresh Prices</button>
+  <div id="error-message"></div>
+  <div id="crypto-container"></div>
+
+  <script>
+    const container = document.getElementById('crypto-container');
+    const errorMsg = document.getElementById('error-message');
+    const refreshBtn = document.getElementById('refresh-btn');
+
+    async function fetchCrypto() {
+      container.innerHTML = '';
+      errorMsg.textContent = '';
+      try {
+        const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd');
+        if (!res.ok) throw new Error("API error");
+        const data = await res.json();
+        const topCoins = data.slice(0, 8); // Get top 8 coins
+        topCoins.forEach(coin => {
+          const card = document.createElement('div');
+          card.className = 'crypto-card';
+          card.innerHTML = `
+            <img src="${coin.image}" alt="${coin.name}" />
+            <h3>${coin.name} (${coin.symbol.toUpperCase()})</h3>
+            <p class="price">💲${coin.current_price}</p>
+            <p class="change ${coin.price_change_percentage_24h >= 0 ? 'green' : 'red'}">
+              ${coin.price_change_percentage_24h.toFixed(2)}%
+            </p>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        errorMsg.textContent = '⚠️ Could not fetch crypto data. Please check your connection.';
+      }
+    }
+
+    refreshBtn.addEventListener('click', fetchCrypto);
+    fetchCrypto(); // Load on page load
+  </script>
+
+</body>
+</html>
